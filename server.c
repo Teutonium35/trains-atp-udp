@@ -6,7 +6,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h>
-#include "rbc.h"
+#include "rbc.c"
 
 #define CHECK_ERROR(val1,val2,msg)   if (val1==val2) \
                                     { perror(msg); \
