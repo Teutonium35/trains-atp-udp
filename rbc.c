@@ -23,10 +23,10 @@ id 4 : move train, data = no_train, destination, server answers acknowledge
 
 */
 
-void add_train(trainData trainRegister[], char * no_train){
+int add_train(trainData trainRegister[], char * no_train){
     if ((trainRegister[0].loc == 0) && (trainRegister[0].no_train[0] != 0)) {
         printf("Cannot add a train : there is already %s at loc 0 !\n", trainRegister[0].no_train);
-        return;
+        return 0;
     }
     for(int i = 1;i<TRACKLENGTH;i++){
         trainRegister[TRACKLENGTH-i] = trainRegister[TRACKLENGTH-(i+1)];
@@ -42,14 +42,16 @@ void add_train(trainData trainRegister[], char * no_train){
     else{
         trainRegister[0].eoa = TRACKLENGTH;
     }
+    return 1;
 }
 
-void remove_train(trainData trainRegister[], char * no_train){
+int remove_train(trainData trainRegister[], char * no_train){
     for(int i = 0;i<TRACKLENGTH;i++){
         if ((trainRegister[i].loc == TRACKLENGTH) && (!strcmp(trainRegister[i].no_train, no_train))){
             trainRegister[i] = empty_train;
         }
     }
+    return 1;
 }
 
 void display_trains(trainData trainRegister[]){
@@ -86,7 +88,7 @@ int ask_permission(trainData trainRegister[], char * no_train, int new_location)
     }
 }
 
-void move_train(trainData trainRegister[], char * no_train, int new_location){
+int move_train(trainData trainRegister[], char * no_train, int new_location){
     int i = 0;
     while (strcmp(trainRegister[i].no_train, no_train) && i < TRACKLENGTH){
         i++;
@@ -99,7 +101,7 @@ void move_train(trainData trainRegister[], char * no_train, int new_location){
     else{
         if (!ask_permission(trainRegister, no_train, new_location)){
             printf("Did not get authorization to move train %s\n", trainRegister[i].no_train);
-            return;
+            return 0;
         }
         trainRegister[i].loc = new_location;
         printf("Successfully moved train %s from %d to %d\n", trainRegister[i].no_train, old_location, trainRegister[i].loc);
@@ -107,9 +109,10 @@ void move_train(trainData trainRegister[], char * no_train, int new_location){
             trainRegister[i-1].eoa = new_location - 1;
         }
     }
+    return 1;
 }
 
-void parse_msg(trainData trainRegister[], char * msg){
+int parse_msg(trainData trainRegister[], char * msg){
     char name_buffer[10] = {""};
     int i = 0;
     while (i<strlen(msg) && msg[i] != ':'){
@@ -130,11 +133,11 @@ void parse_msg(trainData trainRegister[], char * msg){
     printf("Decoded message %s for train %s, procedure %d (%c), with data %s\n", msg, name_buffer, procedure_to_call, procedure_to_call, data_buffer);
 
     if (procedure_to_call == 1){
-        add_train(trainRegister, name_buffer);
+        return add_train(trainRegister, name_buffer);
         // TODO : answer ack
     }
     else if (procedure_to_call == 2){
-        remove_train(trainRegister, name_buffer);
+        return remove_train(trainRegister, name_buffer);
         // TODO : answer ack
     }
     else if (procedure_to_call == 3){
@@ -147,8 +150,7 @@ void parse_msg(trainData trainRegister[], char * msg){
             i++;
         }
         printf("Ask permission to move %s to %s\n", name_buffer, end_buffer);
-        int answer = ask_permission(trainRegister, name_buffer, atoi(end_buffer));
-        // TODO : send answer
+        return ask_permission(trainRegister, name_buffer, atoi(end_buffer));
     }
     else if (procedure_to_call == 4){
         char end_buffer[10] = "";
@@ -160,7 +162,24 @@ void parse_msg(trainData trainRegister[], char * msg){
             i++;
         }
         printf("Move %s to %s\n", name_buffer, end_buffer);
-        move_train(trainRegister, name_buffer, atoi(end_buffer));
-        // TODO : answer ack
+        return move_train(trainRegister, name_buffer, atoi(end_buffer));
     }
 }
+
+void format_add_request(char * no_train, char msg[50]){
+    sprintf(msg, "%s:1:", no_train);
+    printf("%s\n",msg);
+}
+
+void format_permission_request(char * no_train, char msg[50], int destination){
+    sprintf(msg, "%s:3:%d:", no_train, destination);
+    printf("%s\n",msg);
+}
+
+
+
+// int main(){
+//     char msg[50];
+//     format_add_request("TGV0", msg);
+//     printf("%s\n", msg);
+// }

@@ -4,6 +4,7 @@
 #include <arpa/inet.h>
 #include <string.h>
 #include <unistd.h>
+#include "rbc.c"
 
 #define CHECK_ERROR(val1, val2, msg)	if (val1==val2) { printf("%s \n", msg) ; exit(EXIT_FAILURE); }
 #define MAXCARS	80
@@ -52,23 +53,27 @@ int main (int argc, char * argv[])
 
     code_erreur = bind(sd, (struct sockaddr *)&addr_evc, sizeof(addr_evc));
     CHECK_ERROR(code_erreur,-1,"bind");
-
-
+    char instruction_set[2][50];
+    format_add_request("TGV0", instruction_set[0]);
+    printf("Test\n");
+    format_permission_request("TGV0", instruction_set[1], 150);
     
-    do{    
-        //Etape 4 : emission d'une reponse
-        printf("evc> ");
+    //Etape 4 : emission d'une reponse
+    // printf("evc> ");
 
-        longaddr=sizeof(struct sockaddr_in);
+    longaddr=sizeof(struct sockaddr_in);
 
-        fgets(emiss,MAXCARS,stdin);
-        emiss[strlen(emiss)-1]='\0'; //suppression du retour chariot qui est insere dans le buffer par fgets
+    // fgets(emiss,MAXCARS,stdin);
+    // emiss[strlen(emiss)-1]='\0'; //suppression du retour chariot qui est insere dans le buffer par fgets
+    // format_add_request("TGV0", emiss);
 
-        nbcar=sendto(sd,emiss, strlen(emiss), 0,(struct sockaddr *) &addr_rbc, longaddr);
+    for (int i = 0;i<2; i++){
+        sleep(1);
+        nbcar=sendto(sd,instruction_set[i], strlen(instruction_set[i]), 0,(struct sockaddr *) &addr_rbc, longaddr);
 
         if (nbcar < 0) {
             perror("Erreur lors de l'envoi redacteur");
-            continue; // ou exit(EXIT_FAILURE);
+            exit(0); // ou exit(EXIT_FAILURE);
         }
 
         //Etape 5 : reception de data
@@ -78,12 +83,8 @@ int main (int argc, char * argv[])
                 recept[nbcar] = '\0'; // Terminer la chaîne reçue
                 printf("RBC IP:%s> '%s'\n", inet_ntoa(addr_rbc.sin_addr),recept);          
             }
-
-    } 
-    while (strcmp(recept, "end") && strcmp(emiss,"end"));
-    //while (strcmp(emiss,"end"));
-
-    getchar(); 
+        //while (strcmp(emiss,"end"));
+    }
 
     CHECK_ERROR(close(sd), -1, "Erreur lors de la fermeture de la socket");
     exit(EXIT_SUCCESS);
