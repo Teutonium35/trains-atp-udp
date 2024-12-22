@@ -176,6 +176,16 @@ void format_permission_request(char * no_train, char msg[50], int destination){
     printf("%s\n",msg);
 }
 
+void format_movement_request(char * no_train, char msg[50], int destination){
+    sprintf(msg, "%s:4:%d:", no_train, destination);
+    printf("%s\n",msg);
+}
+
+void format_remove_request(char * no_train, char msg[50]){
+    sprintf(msg, "%s:2:", no_train);
+    printf("%s\n",msg);
+}
+
 
 
 // int main(){

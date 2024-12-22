@@ -53,10 +53,13 @@ int main (int argc, char * argv[])
 
     code_erreur = bind(sd, (struct sockaddr *)&addr_evc, sizeof(addr_evc));
     CHECK_ERROR(code_erreur,-1,"bind");
-    char instruction_set[2][50];
+    char instruction_set[5][50];
     format_add_request("TGV0", instruction_set[0]);
     printf("Test\n");
     format_permission_request("TGV0", instruction_set[1], 150);
+    format_movement_request("TGV0", instruction_set[2], 150);
+    format_movement_request("TGV0", instruction_set[3], 1000);
+    format_remove_request("TGV0", instruction_set[4]);
     
     //Etape 4 : emission d'une reponse
     // printf("evc> ");
@@ -67,7 +70,7 @@ int main (int argc, char * argv[])
     // emiss[strlen(emiss)-1]='\0'; //suppression du retour chariot qui est insere dans le buffer par fgets
     // format_add_request("TGV0", emiss);
 
-    for (int i = 0;i<2; i++){
+    for (int i = 0;i<5; i++){
         sleep(1);
         nbcar=sendto(sd,instruction_set[i], strlen(instruction_set[i]), 0,(struct sockaddr *) &addr_rbc, longaddr);
 
